@@ -107,8 +107,11 @@ class ActiveFocusSessionViewModel {
     }
     
     private func convertCountToTimeString(counter: Int) -> String {
-        let seconds = counter % 60
-        let minutes = counter / 60
+        // Absolutwert nutzen, um Vorzeichenfehler im String zu vermeiden
+        let positiveCounter = abs(counter)
+        
+        let seconds = positiveCounter % 60
+        let minutes = positiveCounter / 60
         
         var secondsString = "\(seconds)"
         var minutesString = "\(minutes)"

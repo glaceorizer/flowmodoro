@@ -23,7 +23,8 @@ class FocusSession {
     private var breakRatio: Int {
         // Convoluted casting to get the number of seconds of focus time that grants 1 second of break time
         // Rounded to the nearest int
-        Int(round(Double(pomodoroTimeSec) / Double(shortBreakTimeSec)))
+        let ratio = Int(round(Double(pomodoroTimeSec) / Double(shortBreakTimeSec)))
+        return max(1, ratio) // Verhindert Absturz durch 0
     }
     
     // State variables
@@ -46,9 +47,10 @@ class FocusSession {
     }
     
     var percentBreakRemaining: Double {
-        print(self.currentBreakCounter)
-        return Double(self.currentBreakCounter) / Double(pomodoroTimeSec + shortBreakTimeSec)
-    }
+            // totalBreakCounter anstelle von currentBreakCounter nutzen,
+            // um die gesamte angesparte Pause darzustellen
+            return Double(self.totalBreakCounter) / Double(pomodoroTimeSec + shortBreakTimeSec)
+        }
     
     // Stored variables
 
@@ -138,41 +140,44 @@ extension FocusSession: TimerObserver {
     }
     
     private func updateFocusCounter(increment: Int) {
-        self.totalFocusCounter += increment
-        self.currentFocusCounter += increment
+            self.totalFocusCounter += increment
+            self.currentFocusCounter += increment
 
-        // Add to the break counter such that, at the end of focusTimeSec seconds, shortBreakTimeSec seconds of break time
-        // will have been accumulated.
-        if self.currentFocusCounter % self.breakRatio == 0 {
-            self.currentBreakCounter += 1
-            self.totalBreakCounter += 1
-        }
-        
-        // Award a pom if the total focus time of the session reaches the threshold
-        if self.totalFocusCounter % self.pomodoroTimeSec == 0 {
-            self.numPoms += 1
+            // Add to the break counter such that, at the end of focusTimeSec seconds, shortBreakTimeSec seconds of break time
+            // will have been accumulated.
+            if self.currentFocusCounter % self.breakRatio == 0 {
+                self.currentBreakCounter += 1
+                self.totalBreakCounter += 1
+            }
             
-            // Award a clover if the number of poms achieved in the session reaches the threshold
-            if self.numPoms % self.cloverCount == 0 {
-                self.numClovers += 1
-                self.totalBreakCounter += self.longBreakTimeSec
+            // Award a pom if the current focus time of the session reaches the threshold
+            if self.currentFocusCounter > 0 && self.currentFocusCounter % self.pomodoroTimeSec == 0 {
+                self.numPoms += 1
+                
+                // Award a clover if the number of poms achieved reaches the threshold
+                if self.numPoms == self.cloverCount {
+                    self.numPoms = 0 // Poms explizit auf 0 setzen
+                    self.numClovers += 1 // Clovers um 1 erhöhen
+                    self.totalBreakCounter += self.longBreakTimeSec // Lange Pause hinzufügen
+                }
             }
         }
-    }
-    
-    private func updateBreakCounter(increment: Int) {
-        // Unlike the focus counters, break counter counts down from the accumulated break time to 0.
-        self.currentBreakCounter -= 1
-        self.totalBreakCounter -= 1
         
-        // Session is over when all the break time is used up!
-        if self.totalBreakCounter < 0 {
-            delegate?.focusSessionDidTerminate(self)
+        private func updateBreakCounter(increment: Int) {
+            // Unlike the focus counters, break counter counts down from the accumulated break time to 0.
+            self.currentBreakCounter -= 1
+            self.totalBreakCounter -= 1
+            
+            // Timer stoppen, wenn die Pause aufgebraucht ist, aber NICHT die Session terminieren (verhindert den Reset der Poms)
+            if self.totalBreakCounter <= 0 {
+                self.totalBreakCounter = 0
+                self.currentBreakCounter = 0
+                PomodoroTimer.shared.removeObserver(self)
+            }
         }
-    }
 }
 
-protocol ActiveFocusSessionDelegate: class {
+protocol ActiveFocusSessionDelegate: AnyObject {
     func focusSessionDidUpdateState(_ focusSession: FocusSession)
     func focusSessionDidTerminate(_ focusSesssion: FocusSession)
 }

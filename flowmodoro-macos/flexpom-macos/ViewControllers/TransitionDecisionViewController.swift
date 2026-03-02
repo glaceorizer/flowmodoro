@@ -37,9 +37,10 @@ class TransitionDecisionViewController: NSViewController {
     }
     
     private func startDecisionTimeout() {
-        // After TRANSITION_TIME sec, will automatically start a break and go back.
-        self.decisionTimer = Timer.scheduledTimer(withTimeInterval: Constants.TRANSITION_TIME_S, repeats: false) { _ in
-            self.viewModel.startBreak()
+        // [weak self] hinzufügen, um Memory Leak zu verhindern
+        self.decisionTimer = Timer.scheduledTimer(withTimeInterval: Constants.TRANSITION_TIME_S, repeats: false) { [weak self] _ in
+            guard let self = self else { return } // Sicherstellen, dass self noch existiert
+            self.viewModel.startFocus()
             self.segueToActiveSessionVC()
         }
     }
