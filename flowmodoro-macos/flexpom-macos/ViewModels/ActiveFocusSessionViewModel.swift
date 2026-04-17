@@ -107,7 +107,8 @@ class ActiveFocusSessionViewModel {
     
     private func formatBreakString(counter: Int) -> String {
         if counter < 0 {
-            return "-" + self.convertCountToTimeString(counter: counter * -1)
+            // "counter * -1" entfernt, da convertCountToTimeString bereits abs() nutzt
+            return "-" + self.convertCountToTimeString(counter: counter)
         } else {
             return self.convertCountToTimeString(counter: counter)
         }
