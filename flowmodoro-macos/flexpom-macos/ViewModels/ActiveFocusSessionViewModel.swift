@@ -156,6 +156,6 @@ extension ActiveFocusSessionViewModel: ActiveFocusSessionDelegate {
     }
 }
 
-protocol ActiveFocusSessionViewModelDelegate: class {
+protocol ActiveFocusSessionViewModelDelegate: AnyObject {
     func viewModelHasNewData(_ viewModel: ActiveFocusSessionViewModel, from focusSession: FocusSession)
 }
