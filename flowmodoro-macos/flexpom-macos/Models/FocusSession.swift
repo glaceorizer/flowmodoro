@@ -42,14 +42,14 @@ class FocusSession {
     // Calculated variables
     
     var percentFocusRemaining: Double {
-        let elapsedCount = pomodoroTimeSec - currentFocusCounter
-        return Double(elapsedCount) / Double(pomodoroTimeSec + shortBreakTimeSec)
-    }
-    
-    var percentBreakRemaining: Double {
-            // totalBreakCounter anstelle von currentBreakCounter nutzen,
-            // um die gesamte angesparte Pause darzustellen
-            return Double(self.totalBreakCounter) / Double(pomodoroTimeSec + shortBreakTimeSec)
+            let elapsedCount = pomodoroTimeSec - currentFocusCounter
+            let percentage = Double(elapsedCount) / Double(pomodoroTimeSec + shortBreakTimeSec)
+            return max(percentage, 0.0) // Verhindert negative Prozentwerte (Kreis bleibt leer)
+        }
+        
+        var percentBreakRemaining: Double {
+            let percentage = Double(self.totalBreakCounter) / Double(pomodoroTimeSec + shortBreakTimeSec)
+            return min(percentage, 1.0) // Verhindert, dass der Wert über 100% steigt (Kreis rotiert nicht mehrfach)
         }
     
     // Stored variables
