@@ -95,7 +95,14 @@ class ActiveFocusSessionViewModel {
     
     private func formatFocusString(counter: Int) -> String {
         let focusSecondsRemaining = model.pomodoroTimeSec - counter
-        return self.convertCountToTimeString(counter: focusSecondsRemaining)
+        
+        if focusSecondsRemaining < 0 {
+            // Zeit ist abgelaufen, wir sind in der "Überzeit"
+            // Setze ein "+" (oder "-") davor, damit man sofort sieht, dass die Zeit überzogen ist
+            return "+" + self.convertCountToTimeString(counter: focusSecondsRemaining)
+        } else {
+            return self.convertCountToTimeString(counter: focusSecondsRemaining)
+        }
     }
     
     private func formatBreakString(counter: Int) -> String {
