@@ -55,11 +55,14 @@ class ActiveFocusSessionViewModel {
     // View configuration
     
     func configure(_ view: ActiveFocusSessionView, toShow session: FocusSession) {
-        let focusTimeString = self.formatFocusString(counter: session.currentFocusCounter)
-        let breakTimeString = self.formatBreakString(counter: session.totalBreakCounter)
-        let focusArcDeg = self.calculateFocusArc(currentCount: session.currentFocusCounter, totalCount: session.pomodoroTimeSec)
-        let breakArcDeg = self.calculateBreakArc(currentCount: session.totalBreakCounter, totalCount: session.pomodoroTimeSec)
+        updateBreakState(in: view, session: session)
+        updateLabels(in: view, session: session)
+        updateProgressArcs(in: view, session: session)
         
+        view.needsDisplay = true
+    }
+
+    private func updateBreakState(in view: ActiveFocusSessionView, session: FocusSession) {
         if session.isBreak != self.isCurrentlyShowingBreak {
             if session.isBreak {
                 let startAngle = ActiveFocusSessionView.DEFAULT_START_ANGLE - CGFloat(session.percentBreakRemaining * 360)
@@ -75,18 +78,21 @@ class ActiveFocusSessionViewModel {
             }
             self.isCurrentlyShowingBreak = session.isBreak
         }
-        
-        view.focusTimeLabel.stringValue = focusTimeString
-        view.breakTimeLabel.stringValue = breakTimeString
-        view.focusPercentage = CGFloat(session.percentFocusRemaining)
-        view.breakPercentage = CGFloat(session.percentBreakRemaining)
-        view.focusArcDeg = focusArcDeg
-        view.breakArcDeg = breakArcDeg
+    }
+
+    private func updateLabels(in view: ActiveFocusSessionView, session: FocusSession) {
+        view.focusTimeLabel.stringValue = formatFocusString(counter: session.currentFocusCounter)
+        view.breakTimeLabel.stringValue = formatBreakString(counter: session.totalBreakCounter)
         view.pomLabel.stringValue = "Poms: \(session.numPoms)"
         view.cloverLabel.stringValue = "Clovers: \(session.numClovers)"
         view.focusButton.title = session.isBreak ? "Focus" : "Break"
-        
-        view.needsDisplay = true
+    }
+
+    private func updateProgressArcs(in view: ActiveFocusSessionView, session: FocusSession) {
+        view.focusPercentage = CGFloat(session.percentFocusRemaining)
+        view.breakPercentage = CGFloat(session.percentBreakRemaining)
+        view.focusArcDeg = calculateFocusArc(currentCount: session.currentFocusCounter, totalCount: session.pomodoroTimeSec)
+        view.breakArcDeg = calculateBreakArc(currentCount: session.totalBreakCounter, totalCount: session.pomodoroTimeSec)
     }
     
     func configure(_ view: TransitionDecisionView, toShow session: FocusSession) {
