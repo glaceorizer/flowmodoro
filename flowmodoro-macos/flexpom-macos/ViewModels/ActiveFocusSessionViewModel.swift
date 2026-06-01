@@ -85,7 +85,7 @@ class ActiveFocusSessionViewModel {
         view.breakTimeLabel.stringValue = formatBreakString(counter: session.totalBreakCounter)
         view.pomLabel.stringValue = "Poms: \(session.numPoms)"
         view.cloverLabel.stringValue = "Clovers: \(session.numClovers)"
-        view.focusButton.title = session.isBreak ? "Focus" : "Break"
+        view.focusButton.title = session.isBreak ? SessionType.focus.rawValue : SessionType.breakTime.rawValue
     }
 
     private func updateProgressArcs(in view: ActiveFocusSessionView, session: FocusSession) {

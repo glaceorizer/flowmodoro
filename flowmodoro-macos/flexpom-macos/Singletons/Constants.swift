@@ -19,3 +19,8 @@ enum Constants {
     
     static let TRANSITION_TIME_S: Double = 10
 }
+
+enum SessionType: String {
+    case focus = "Focus"
+    case breakTime = "Break"
+}
