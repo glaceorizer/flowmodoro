@@ -9,9 +9,6 @@ class PomodoroTimer {
     // Speichert die exakte Uhrzeit des letzten Ticks
     private var lastTickDate: Date?
     
-    // NEU: Speichert den Zeitpunkt des Ruhezustands
-    private var sleepDate: Date?
-    
     private init() {
         setupSleepWakeObservers()
     }
@@ -39,22 +36,17 @@ class PomodoroTimer {
     }
 
     @objc private func handleSleep(_ notification: Notification) {
-        // Zeitpunkt speichern, an dem der Mac zugeklappt wird
-        sleepDate = Date()
+        // Zerstört den Timer VOR dem Ruhezustand.
+        // Das verhindert, dass macOS beim Aufwachen angesammelte, alte Ticks nachholt.
+        self.timer?.invalidate()
+        self.timer = nil
     }
 
     @objc private func handleWake(_ notification: Notification) {
-        guard let sleep = sleepDate else { return }
-        
-        let timeAsleep = Date().timeIntervalSince(sleep)
-        
-        // Den letzten Tick um die geschlafene Zeit nach vorne schieben.
-        // Dadurch tut der Timer so, als wäre in der Zwischenzeit keine Zeit vergangen.
-        if let last = lastTickDate {
-            lastTickDate = last.addingTimeInterval(timeAsleep)
-        }
-        
-        sleepDate = nil
+        // Startet einen komplett frischen Timer.
+        // 'lastTickDate' wird dabei exakt auf die aktuelle Aufwach-Zeit gesetzt.
+        // Der nächste Tick erfolgt dann ganz sauber genau 1 Sekunde später.
+        self.start()
     }
     
     // MARK: - Timer Logic
@@ -75,13 +67,12 @@ class PomodoroTimer {
                 self.lastTickDate = now
                 
                 for (id, observation) in self.observations {
-                    // If the observer is no longer in memory, clean up
+                    // Cleanup, falls der Observer nicht mehr im RAM ist
                     guard let observer = observation.observer else {
                         self.observations.removeValue(forKey: id)
                         continue
                     }
                     
-                    // Übergebe die tatsächlich vergangene Zeit
                     observer.timerDidFire(self, timeElapsed: timeElapsed)
                 }
             }
@@ -92,7 +83,6 @@ class PomodoroTimer {
         self.timer?.invalidate()
         self.timer = nil
         self.lastTickDate = nil
-        self.sleepDate = nil
     }
 }
 
