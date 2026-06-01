@@ -170,6 +170,11 @@ extension ActiveFocusSessionViewModel: ActiveFocusSessionDelegate {
     func focusSessionDidTerminate(_ focusSession: FocusSession) {
         self.stopTiming()
     }
+    
+    func focusSessionDidReset(_ focusSession: FocusSession) {
+        // Leite das Reset-Event einfach an die View weiter, damit sie sich neu zeichnet
+        self.delegate?.viewModelHasNewData(self, from: focusSession)
+    }
 }
 
 protocol ActiveFocusSessionViewModelDelegate: AnyObject {

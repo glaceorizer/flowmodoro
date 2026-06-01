@@ -79,9 +79,7 @@ class FocusSession {
         
         delegate?.focusSessionDidUpdateState(self)
         
-        // hack to get the UI to update correctly when the focus session expires
-        self.isBreak = true
-        delegate?.focusSessionDidUpdateState(self)
+        delegate?.focusSessionDidReset(self)
     }
     
     func beginFocusBlock() {
@@ -191,4 +189,5 @@ extension FocusSession: TimerObserver {
 protocol ActiveFocusSessionDelegate: AnyObject {
     func focusSessionDidUpdateState(_ focusSession: FocusSession)
     func focusSessionDidTerminate(_ focusSession: FocusSession)
+    func focusSessionDidReset(_ focusSession: FocusSession)
 }
