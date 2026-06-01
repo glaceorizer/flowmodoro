@@ -115,25 +115,40 @@ class ActiveFocusSessionViewModel {
     }
     
     private func convertCountToTimeString(counter: Int) -> String {
-        // Absolutwert nutzen, um Vorzeichenfehler im String zu vermeiden
-        let positiveCounter = abs(counter)
-        
-        let seconds = positiveCounter % 60
-        let minutes = positiveCounter / 60
-        
-        var secondsString = "\(seconds)"
-        var minutesString = "\(minutes)"
-        
-        if seconds < 10 {
-            secondsString = "0" + secondsString
+            let positiveCounter = abs(counter)
+            
+            let seconds = positiveCounter % 60
+            let totalMinutes = positiveCounter / 60
+            let minutes = totalMinutes % 60
+            let totalHours = totalMinutes / 60
+            let hours = totalHours % 24
+            let days = totalHours / 24
+            
+            // 1. Fall: Unter 1 Stunde -> Das klassische Format (z.B. "25:00" oder "05:30")
+            if days == 0 && hours == 0 {
+                let secondsString = seconds < 10 ? "0\(seconds)" : "\(seconds)"
+                let minutesString = minutes < 10 ? "0\(minutes)" : "\(minutes)"
+                return "\(minutesString):\(secondsString)"
+            }
+            
+            // 2. Fall: Über 1 Stunde -> Das neue, besser lesbare Format (z.B. "1d 2h 15m 30s")
+            var timeString = ""
+            
+            if days > 0 {
+                timeString += "\(days)d "
+            }
+            
+            if hours > 0 || days > 0 {
+                timeString += "\(hours)h "
+            }
+            
+            timeString += "\(minutes)m "
+            
+            // Sekunden optional auch im langen Format anzeigen (damit man sieht, dass der Timer noch läuft)
+            timeString += "\(seconds)s"
+            
+            return timeString.trimmingCharacters(in: .whitespaces)
         }
-        
-        if minutes < 10 {
-            minutesString = "0" + minutesString
-        }
-        
-        return "\(minutesString):\(secondsString)"
-    }
     
     private func calculateFocusArc(currentCount: Int, totalCount: Int) -> CGFloat {
         let elapsedCount = totalCount - currentCount
